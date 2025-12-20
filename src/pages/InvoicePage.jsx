@@ -56,8 +56,8 @@ function InvoicePage() {
     if (navigator.share) {
       try {
         await navigator.share({
-          title: `فاتورة Triply - ${bookingData.destination}`,
-          text: `فاتورة حجز رحلة إلى ${bookingData.destination}`,
+          title: `${t("invoice.title")} Triply - ${bookingData.destination}`,
+          text: `${t("invoice.bookingInvoice")} ${bookingData.destination}`,
           url: invoiceUrl
         });
       } catch (err) {
@@ -94,7 +94,7 @@ function InvoicePage() {
             <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
-            رجوع
+            {t("invoice.back")}
           </button>
           
           <div className="flex gap-2">
@@ -105,7 +105,7 @@ function InvoicePage() {
               <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
               </svg>
-              طباعة
+              {t("invoice.print")}
             </button>
             
             <button
@@ -117,14 +117,14 @@ function InvoicePage() {
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  تم النسخ
+                  {t("invoice.shared")}
                 </>
               ) : (
                 <>
                   <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                   </svg>
-                  مشاركة
+                  {t("invoice.share")}
                 </>
               )}
             </button>
@@ -136,47 +136,59 @@ function InvoicePage() {
           {/* Header */}
           <div className="mb-8 flex items-start justify-between border-b border-triply-mint/30 pb-6 dark:border-triply-teal/30">
             <div>
-              <h1 className="mb-2 text-3xl font-bold text-triply-dark dark:text-white">فاتورة الحجز</h1>
-              <p className="text-triply-slate/70 dark:text-slate-400">رقم الفاتورة: #{invoiceId}</p>
-              <p className="text-sm text-triply-slate/70 dark:text-slate-400">التاريخ: {invoiceDate}</p>
+              <h1 className="mb-2 text-3xl font-bold text-triply-dark dark:text-white">{t("invoice.bookingInvoice")}</h1>
+              <p className="text-triply-slate/70 dark:text-slate-400">{t("invoice.invoiceNumber")}: #{invoiceId}</p>
+              <p className="text-sm text-triply-slate/70 dark:text-slate-400">{t("invoice.date")}: {invoiceDate}</p>
             </div>
             
             <div className="text-right">
-              <p className="mb-1 text-2xl font-bold text-triply-teal dark:text-triply-mint">Triply</p>
-              <p className="text-sm text-triply-slate/70 dark:text-slate-400">خدمات السفر والسياحة</p>
-              <p className="text-sm text-triply-slate/70 dark:text-slate-400">المملكة العربية السعودية</p>
+              <p className="mb-1 text-2xl font-bold text-triply-teal dark:text-triply-mint">{t("invoice.companyName")}</p>
+              <p className="text-sm text-triply-slate/70 dark:text-slate-400">{t("invoice.companyDescription")}</p>
+              <p className="text-sm text-triply-slate/70 dark:text-slate-400">{t("invoice.companyLocation")}</p>
             </div>
           </div>
 
           {/* Invoice Details */}
           <div className="mb-8">
-            <h2 className="mb-4 text-xl font-semibold text-triply-dark dark:text-white">تفاصيل الحجز</h2>
+            <h2 className="mb-4 text-xl font-semibold text-triply-dark dark:text-white">{t("invoice.bookingDetails")}</h2>
             <div className="space-y-3 rounded-xl bg-triply-sand/20 p-6 dark:bg-slate-800/50">
               <div className="flex justify-between">
-                <span className="text-triply-slate/70 dark:text-slate-400">الوجهة:</span>
+                <span className="text-triply-slate/70 dark:text-slate-400">{t("invoice.destination")}:</span>
                 <span className="font-semibold text-triply-dark dark:text-white">{bookingData.destination}</span>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-triply-slate/70 dark:text-slate-400">الفئة:</span>
+                <span className="text-triply-slate/70 dark:text-slate-400">{t("invoice.category")}:</span>
                 <span className="font-semibold text-triply-dark dark:text-white">{bookingData.category}</span>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-triply-slate/70 dark:text-slate-400">عدد الأيام:</span>
-                <span className="font-semibold text-triply-dark dark:text-white">{bookingData.days} يوم</span>
+                <span className="text-triply-slate/70 dark:text-slate-400">{t("invoice.numberOfDays")}:</span>
+                <span className="font-semibold text-triply-dark dark:text-white">{bookingData.days} {t("invoice.day")}</span>
               </div>
+
+              {bookingData.numberOfGuests && (
+                <div className="flex justify-between">
+                  <span className="text-triply-slate/70 dark:text-slate-400">{t("bookingDetails.summaryGuests")}:</span>
+                  <span className="font-semibold text-triply-dark dark:text-white">
+                    {bookingData.numberOfGuests}{" "}
+                    {bookingData.numberOfGuests === 1
+                      ? t("bookingDetails.person")
+                      : t("bookingDetails.persons")}
+                  </span>
+                </div>
+              )}
 
               {bookingData.travelers && (
                 <div className="flex justify-between">
-                  <span className="text-triply-slate/70 dark:text-slate-400">عدد المسافرين:</span>
+                  <span className="text-triply-slate/70 dark:text-slate-400">{t("invoice.numberOfTravelers")}:</span>
                   <span className="font-semibold text-triply-dark dark:text-white">{bookingData.travelers}</span>
                 </div>
               )}
 
               {bookingData.startDate && (
                 <div className="flex justify-between">
-                  <span className="text-triply-slate/70 dark:text-slate-400">تاريخ البداية:</span>
+                  <span className="text-triply-slate/70 dark:text-slate-400">{t("invoice.startDate")}:</span>
                   <span className="font-semibold text-triply-dark dark:text-white">{bookingData.startDate}</span>
                 </div>
               )}
@@ -185,21 +197,28 @@ function InvoicePage() {
 
           {/* Price Breakdown */}
           <div className="mb-8">
-            <h2 className="mb-4 text-xl font-semibold text-triply-dark dark:text-white">تفاصيل الفاتورة</h2>
+            <h2 className="mb-4 text-xl font-semibold text-triply-dark dark:text-white">{t("invoice.invoiceDetails")}</h2>
             <div className="space-y-3">
+              {bookingData.numberOfGuests > 1 && bookingData.pricePerPerson && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-triply-slate/70 dark:text-slate-400">{t("bookingDetails.pricePerPerson")}:</span>
+                  <span className="text-triply-dark/70 dark:text-white/70">{bookingData.pricePerPerson?.toLocaleString('ar-EG')} ر.س</span>
+                </div>
+              )}
+              
               <div className="flex justify-between">
-                <span className="text-triply-slate/70 dark:text-slate-400">المبلغ الأساسي:</span>
+                <span className="text-triply-slate/70 dark:text-slate-400">{t("invoice.baseAmount")}:</span>
                 <span className="text-triply-dark dark:text-white">{bookingData.totalCost?.toLocaleString('ar-EG')} ر.س</span>
               </div>
               
               <div className="flex justify-between">
-                <span className="text-triply-slate/70 dark:text-slate-400">الضريبة (15%):</span>
+                <span className="text-triply-slate/70 dark:text-slate-400">{t("invoice.tax15")}:</span>
                 <span className="text-triply-dark dark:text-white">{((bookingData.totalCost || 0) * 0.15).toLocaleString('ar-EG')} ر.س</span>
               </div>
               
               <div className="border-t border-triply-mint/30 pt-3 dark:border-triply-teal/30">
                 <div className="flex justify-between text-xl font-bold">
-                  <span className="text-triply-dark dark:text-white">الإجمالي:</span>
+                  <span className="text-triply-dark dark:text-white">{t("invoice.total")}:</span>
                   <span className="text-triply-teal dark:text-triply-mint">
                     {((bookingData.totalCost || 0) * 1.15).toLocaleString('ar-EG')} ر.س
                   </span>
@@ -211,7 +230,7 @@ function InvoicePage() {
           {/* QR Code Section */}
           <div className="mt-8 rounded-xl border-2 border-dashed border-triply-mint/40 bg-gradient-to-br from-triply-mint/5 to-triply-sand/10 p-6 text-center dark:border-triply-teal/30 dark:from-triply-teal/5 dark:to-slate-800/20">
             <h3 className="mb-4 text-lg font-semibold text-triply-dark dark:text-white">
-              📱 كود الحجز (QR Code)
+              {t("invoice.qrCodeTitle")}
             </h3>
             
             {qrCodeUrl && (
@@ -223,7 +242,7 @@ function InvoicePage() {
             )}
             
             <p className="mb-4 text-sm text-triply-slate/70 dark:text-slate-400">
-              استخدم هذا الكود لمشاركة تفاصيل حجزك أو عرضه عند الوصول
+              {t("invoice.qrCodeDescription")}
             </p>
             
             <div className="flex justify-center gap-3 print:hidden">
@@ -234,7 +253,7 @@ function InvoicePage() {
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                 </svg>
-                تحميل
+                {t("invoice.download")}
               </button>
               
               <button
@@ -244,7 +263,7 @@ function InvoicePage() {
                 <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                 </svg>
-                مشاركة
+                {t("invoice.share")}
               </button>
             </div>
           </div>
@@ -252,10 +271,10 @@ function InvoicePage() {
           {/* Footer */}
           <div className="mt-8 border-t border-triply-mint/30 pt-6 text-center dark:border-triply-teal/30">
             <p className="text-sm text-triply-slate/60 dark:text-slate-500">
-              شكراً لاختياركم Triply - نتطلع لخدمتكم
+              {t("invoice.thankYou")}
             </p>
             <p className="mt-2 text-xs text-triply-slate/50 dark:text-slate-600">
-              للاستفسارات: info@triply.com | +966 50 123 4567
+              {t("invoice.contact")}
             </p>
           </div>
         </div>

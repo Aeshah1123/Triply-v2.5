@@ -9,7 +9,7 @@
 
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { QRCodeCanvas } from 'qrcode.react';
+import QRCode from 'react-qr-code';
 import { useAuth } from '../contexts/AuthContext.jsx';
 import { useLanguage } from '../contexts/LanguageContext.jsx';
 import { formatDualCurrency } from '../data/currencyRates.js';
@@ -82,50 +82,50 @@ function PaymentSuccessPage() {
 
         {/* العنوان */}
         <h1 className="text-3xl md:text-4xl font-bold text-center text-triply-dark dark:text-dark-text-primary mb-3">
-          تم الدفع بنجاح! 🎉
+          {t('paymentSuccessPage.successTitle')}
         </h1>
 
         <p className="text-center text-triply-dark/70 dark:text-dark-text-secondary mb-8">
-          تم تأكيد حجزك وإرسال التفاصيل إلى بريدك الإلكتروني
+          {t('paymentSuccessPage.confirmationSent')}
         </p>
 
         {/* تفاصيل الحجز */}
         <div className="bg-gradient-to-br from-triply-mint/10 to-triply-teal/10 dark:from-triply-teal/5 dark:to-triply-mint/5 rounded-2xl p-6 mb-8">
           <h2 className="text-lg font-bold text-triply-dark dark:text-dark-text-primary mb-4">
-            تفاصيل الحجز 📋
+            {t('paymentSuccessPage.bookingDetailsTitle')}
           </h2>
           
           <div className="space-y-3 text-sm">
             <div className="flex justify-between items-center">
-              <span className="text-triply-dark/70 dark:text-dark-text-secondary">رقم الحجز:</span>
+              <span className="text-triply-dark/70 dark:text-dark-text-secondary">{t('paymentSuccessPage.bookingNumber')}</span>
               <span className="font-mono font-bold text-triply-teal dark:text-triply-mint text-base">
                 #{bookingNumber}
               </span>
             </div>
 
             <div className="flex justify-between">
-              <span className="text-triply-dark/70 dark:text-dark-text-secondary">الوجهة:</span>
+              <span className="text-triply-dark/70 dark:text-dark-text-secondary">{t('paymentSuccessPage.destination')}</span>
               <span className="font-semibold text-triply-dark dark:text-dark-text-primary">
                 {bookingData.destination}
               </span>
             </div>
             
             <div className="flex justify-between">
-              <span className="text-triply-dark/70 dark:text-dark-text-secondary">الفئة:</span>
+              <span className="text-triply-dark/70 dark:text-dark-text-secondary">{t('paymentSuccessPage.category')}</span>
               <span className="font-semibold text-triply-dark dark:text-dark-text-primary">
                 {bookingData.category}
               </span>
             </div>
             
             <div className="flex justify-between">
-              <span className="text-triply-dark/70 dark:text-dark-text-secondary">عدد الأيام:</span>
+              <span className="text-triply-dark/70 dark:text-dark-text-secondary">{t('paymentSuccessPage.numberOfDays')}</span>
               <span className="font-semibold text-triply-dark dark:text-dark-text-primary">
-                {bookingData.days} يوم
+                {bookingData.days} {t('paymentSuccessPage.days')}
               </span>
             </div>
 
             <div className="flex justify-between">
-              <span className="text-triply-dark/70 dark:text-dark-text-secondary">تاريخ الحجز:</span>
+              <span className="text-triply-dark/70 dark:text-dark-text-secondary">{t('paymentSuccessPage.bookingDate')}</span>
               <span className="font-semibold text-triply-dark dark:text-dark-text-primary">
                 {new Date().toLocaleDateString('ar-SA')}
               </span>
@@ -133,7 +133,7 @@ function PaymentSuccessPage() {
 
             <div className="border-t border-triply-mint/30 dark:border-dark-border pt-3 mt-3">
               <div className="flex justify-between items-center">
-                <span className="text-lg font-bold text-triply-dark dark:text-dark-text-primary">المبلغ المدفوع:</span>
+                <span className="text-lg font-bold text-triply-dark dark:text-dark-text-primary">{t('paymentSuccessPage.amountPaid')}</span>
                 <div className="text-left">
                   <div className="text-2xl font-bold text-green-600 dark:text-green-400">
                     {bookingData.totalCost?.toLocaleString() || '0'} ر.س 🇸🇦
@@ -158,10 +158,10 @@ function PaymentSuccessPage() {
             <span className="text-2xl">📧</span>
             <div className="flex-1">
               <h3 className="font-bold text-triply-dark dark:text-dark-text-primary mb-1">
-                تحقق من بريدك الإلكتروني
+                {t('paymentSuccessPage.checkEmailTitle')}
               </h3>
               <p className="text-sm text-triply-dark/70 dark:text-dark-text-secondary">
-                تم إرسال تأكيد الحجز مع كافة التفاصيل إلى بريدك الإلكتروني
+                {t('paymentSuccessPage.checkEmailDesc')}
               </p>
             </div>
           </div>
@@ -173,14 +173,14 @@ function PaymentSuccessPage() {
             onClick={() => navigate('/')}
             className="flex-1 px-6 py-3 bg-gradient-to-r from-triply-teal to-triply-mint text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all"
           >
-            العودة للرئيسية 🏠
+            {t('common.backToHome')}
           </button>
           
           <button
             onClick={() => window.print()}
             className="flex-1 px-6 py-3 bg-white dark:bg-dark-bg border-2 border-triply-teal text-triply-teal dark:text-triply-mint font-bold rounded-xl hover:bg-triply-mint/10 dark:hover:bg-triply-teal/10 transition-all"
           >
-            طباعة التأكيد 🖨️
+            {t('common.printConfirmation')}
           </button>
         </div>
 
@@ -189,23 +189,24 @@ function PaymentSuccessPage() {
           onClick={() => setShowQR(!showQR)}
           className="w-full mt-4 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold rounded-xl shadow-lg hover:shadow-xl transform hover:scale-[1.02] transition-all"
         >
-          {showQR ? 'إخفاء QR Code 🔒' : 'عرض QR Code 📱'}
+          {showQR 
+            ? (t('common.hideQRCode') || 'إخفاء QR Code 🔒') 
+            : (t('common.showQRCode') || 'عرض QR Code 📱')}
         </button>
 
         {/* QR Code Section */}
         {showQR && (
           <div className="mt-6 p-6 bg-white dark:bg-dark-bg rounded-2xl border-2 border-purple-500 dark:border-purple-400 shadow-xl animate-fadeIn">
             <h3 className="text-xl font-bold text-center text-triply-dark dark:text-dark-text-primary mb-4">
-              كود الحجز (QR Code) 📱
+              {t('paymentSuccessPage.qrCodeTitle')}
             </h3>
             
             <div className="flex justify-center mb-4">
               <div className="bg-white p-4 rounded-2xl shadow-lg" id="qr-code-container">
-                <QRCodeCanvas
+                <QRCode
                   value={qrData}
                   size={256}
-                  level="H"
-                  includeMargin={true}
+                  style={{ height: "auto", maxWidth: "100%", width: "100%" }}
                   bgColor="#ffffff"
                   fgColor="#0f5b4a"
                 />
@@ -213,7 +214,7 @@ function PaymentSuccessPage() {
             </div>
 
             <p className="text-sm text-center text-triply-dark/70 dark:text-dark-text-secondary mb-4">
-              امسح الكود لعرض الفاتورة الكاملة ومشاركتها
+              {t('paymentSuccessPage.scanQRDesc')}
             </p>
 
             <div className="grid grid-cols-3 gap-3">
@@ -225,7 +226,7 @@ function PaymentSuccessPage() {
                 }}
                 className="px-4 py-3 bg-gradient-to-r from-triply-teal to-triply-mint text-white font-bold rounded-xl hover:shadow-lg transition-all"
               >
-                عرض الفاتورة 📄
+                {t('paymentSuccessPage.viewInvoice')}
               </button>
 
               <button
@@ -239,7 +240,7 @@ function PaymentSuccessPage() {
                       });
                     } else {
                       await navigator.clipboard.writeText(invoiceUrl);
-                      alert('تم نسخ رابط الفاتورة!');
+                      alert(t('common.invoiceCopied'));
                     }
                   } catch (err) {
                     console.error('Error sharing:', err);
@@ -247,7 +248,7 @@ function PaymentSuccessPage() {
                 }}
                 className="px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
               >
-                مشاركة 📤
+                {t('paymentSuccessPage.share')}
               </button>
 
               <button
@@ -261,7 +262,7 @@ function PaymentSuccessPage() {
                 }}
                 className="px-4 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-bold rounded-xl hover:shadow-lg transition-all"
               >
-                تحميل 💾
+                {t('paymentSuccessPage.download')}
               </button>
             </div>
 
@@ -274,7 +275,7 @@ function PaymentSuccessPage() {
                 <svg width="24" height="24" fill="currentColor" viewBox="0 0 20 20">
                   <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
                 </svg>
-                <span>عرض جميع الحجوزات</span>
+                <span>{t('paymentSuccessPage.viewAllBookings')}</span>
                 <svg width="20" height="20" fill="currentColor" viewBox="0 0 20 20" className="animate-bounce">
                   <path fillRule="evenodd" d="M12.707 5.293a1 1 0 010 1.414L9.414 10l3.293 3.293a1 1 0 01-1.414 1.414l-4-4a1 1 0 010-1.414l4-4a1 1 0 011.414 0z" clipRule="evenodd" />
                 </svg>
@@ -285,7 +286,7 @@ function PaymentSuccessPage() {
 
         {/* رسالة خدمة العملاء */}
         <div className="mt-8 text-center text-sm text-triply-dark/60 dark:text-dark-text-secondary">
-          <p>لأي استفسار، تواصل مع خدمة العملاء على واتساب</p>
+          <p>{t('paymentSuccessPage.customerServiceMessage')}</p>
           <a 
             href="https://wa.me/966500000000" 
             target="_blank" 

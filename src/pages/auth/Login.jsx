@@ -13,9 +13,11 @@ import { InputField } from '../../components/ui/InputField.jsx';
 import { GoogleButton } from '../../components/ui/GoogleButton.jsx';
 import { GlassButton } from '../../components/ui/GlassButton.jsx';
 import { FeedbackToast } from '../../components/ui/FeedbackToast.jsx';
+import { useLanguage } from '../../contexts/LanguageContext.jsx';
 
 function Login() {
   const navigate = useNavigate();
+  const { t } = useLanguage();
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -41,15 +43,15 @@ function Login() {
     const newErrors = {};
     
     if (!formData.email) {
-      newErrors.email = 'البريد الإلكتروني مطلوب';
+      newErrors.email = t('auth.emailRequired');
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'البريد الإلكتروني غير صالح';
+      newErrors.email = t('auth.emailInvalid');
     }
     
     if (!formData.password) {
-      newErrors.password = 'كلمة المرور مطلوبة';
+      newErrors.password = t('auth.passwordRequired');
     } else if (formData.password.length < 6) {
-      newErrors.password = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+      newErrors.password = t('auth.passwordTooShort');
     }
     
     setErrors(newErrors);
@@ -60,7 +62,7 @@ function Login() {
     e.preventDefault();
     
     if (!validateForm()) {
-      setStatus({ type: 'error', message: 'تحقق من الحقول المطلوبة لإكمال تسجيل الدخول' });
+      setStatus({ type: 'error', message: t('auth.checkRequiredFields') });
       return;
     }
 
@@ -73,7 +75,7 @@ function Login() {
       localStorage.setItem('userEmail', formData.email);
       localStorage.setItem('isLoggedIn', 'true');
       setIsSubmitting(false);
-      setStatus({ type: 'success', message: `مرحباً ${username}! تم تسجيل الدخول بنجاح.` });
+      setStatus({ type: 'success', message: `${t('auth.welcomeUser')} ${username}! ${t('auth.loginSuccess')}.` });
       window.setTimeout(() => {
         navigate('/');
       }, 600);
@@ -86,11 +88,11 @@ function Login() {
     setStatus(null);
 
     window.setTimeout(() => {
-      const username = 'مستخدم Google';
+      const username = 'Google User';
       localStorage.setItem('username', username);
       localStorage.setItem('isLoggedIn', 'true');
       setIsSubmitting(false);
-      setStatus({ type: 'success', message: 'تم تسجيل الدخول عبر Google بنجاح.' });
+      setStatus({ type: 'success', message: t('auth.googleLoginSuccess') });
       window.setTimeout(() => {
         navigate('/');
       }, 600);
@@ -103,10 +105,10 @@ function Login() {
         {/* Header with animation */}
         <div className="text-center animate-fadeIn">
           <h1 className="mb-3 font-display text-3xl font-bold bg-gradient-to-r from-triply-teal via-triply to-triply-mint bg-clip-text text-transparent dark:from-triply-mint dark:via-triply-teal dark:to-triply-accentLight animate-gradient-x">
-            مرحباً بعودتك
+            {t('auth.welcomeBack')}
           </h1>
           <p className="text-base text-triply-slate/70 dark:text-slate-400">
-            سجل الدخول إلى حسابك في Triply
+            {t('auth.loginToAccount')}
           </p>
         </div>
 
@@ -120,10 +122,10 @@ function Login() {
         <form onSubmit={handleSubmit} className="space-y-5">
           <div className="animate-fadeInUp" style={{ animationDelay: '0.1s', animationFillMode: 'both' }}>
             <InputField
-              label="البريد الإلكتروني"
+              label={t('auth.email')}
               type="email"
               name="email"
-              placeholder="name@example.com"
+              placeholder={t('auth.emailPlaceholder')}
               value={formData.email}
               onChange={handleChange}
               required
@@ -143,10 +145,10 @@ function Login() {
 
           <div className="animate-fadeInUp" style={{ animationDelay: '0.2s', animationFillMode: 'both' }}>
             <InputField
-              label="كلمة المرور"
+              label={t('auth.password')}
               type="password"
               name="password"
-              placeholder="••••••••"
+              placeholder={t('auth.passwordPlaceholder')}
               value={formData.password}
               onChange={handleChange}
               required
@@ -174,10 +176,10 @@ function Login() {
                 onChange={handleChange}
                 className="h-4 w-4 cursor-pointer rounded border-2 border-triply-mint/40 bg-white text-triply transition-all focus:ring-2 focus:ring-triply/30 dark:border-triply-teal/40 dark:bg-slate-800 dark:text-triply-mint dark:focus:ring-triply-mint/30"
               />
-              تذكرني
+              {t('auth.rememberMe')}
             </label>
             <a href="#" className="group relative text-triply transition-all hover:text-triply-teal dark:text-triply-mint dark:hover:text-triply-accentLight">
-              نسيت كلمة المرور؟
+              {t('auth.forgotPassword')}
               <span className="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-current transition-all group-hover:w-full" />
             </a>
           </div>
@@ -185,7 +187,7 @@ function Login() {
           {/* Submit button */}
           <div className="animate-fadeInUp" style={{ animationDelay: '0.4s', animationFillMode: 'both' }}>
             <GlassButton type="submit" variant="primary" className="w-full group relative overflow-hidden" size="lg" isLoading={isSubmitting}>
-              <span className="relative z-10">تسجيل الدخول</span>
+              <span className="relative z-10">{t('auth.loginButton')}</span>
               <span className="absolute inset-0 -z-0 bg-gradient-to-r from-triply-teal via-triply to-triply-mint opacity-0 transition-opacity duration-300 group-hover:opacity-20" />
             </GlassButton>
           </div>
@@ -198,21 +200,21 @@ function Login() {
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="bg-white/90 px-4 text-triply-slate/60 backdrop-blur-sm dark:bg-slate-900/90 dark:text-slate-400">
-              أو تابع باستخدام
+              {t('auth.orContinueWith')}
             </span>
           </div>
         </div>
 
         {/* Google login */}
         <div className="animate-fadeInUp" style={{ animationDelay: '0.6s', animationFillMode: 'both' }}>
-          <GoogleButton label="تسجيل الدخول باستخدام Google" onClick={handleGoogleLogin} disabled={isSubmitting} />
+          <GoogleButton label={t('auth.googleLogin')} onClick={handleGoogleLogin} disabled={isSubmitting} />
         </div>
 
         {/* Sign up link */}
         <p className="text-center text-sm text-triply-slate/70 animate-fadeInUp dark:text-slate-400" style={{ animationDelay: '0.7s', animationFillMode: 'both' }}>
-          ليس لديك حساب؟{' '}
+          {t('auth.noAccount')}{' '}
           <Link to="/signup" className="group relative font-semibold text-triply transition-all hover:text-triply-teal dark:text-triply-mint dark:hover:text-triply-accentLight">
-            أنشئ حساباً جديداً
+            {t('auth.signupLink')}
             <span className="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-current transition-all group-hover:w-full" />
           </Link>
         </p>

@@ -138,22 +138,25 @@ export const convertCurrency = (amountInSAR, destination) => {
   };
 };
 
-// دالة لعرض كلا السعرين (ريال + عملة محلية)
-export const formatDualCurrency = (amountInSAR, destination) => {
+// دالة لعرض كلا السعرين (ريال + عملة محلية) مع دعم اللغات
+export const formatDualCurrency = (amountInSAR, destination, language = 'ar') => {
+  // إذا لم يكن هناك destination، نرجع فقط المبلغ بالريال
+  if (!destination) {
+    const sarLabel = language === 'ar' ? 'ر.س' : 'SAR';
+    return `${amountInSAR.toLocaleString('en-US')} ${sarLabel}`;
+  }
+  
   const currencyInfo = getCurrencyInfo(destination);
   
   // إذا كانت العملة هي الريال، أعرض الريال فقط
   if (currencyInfo.currency === 'SAR') {
-    return {
-      primary: `${amountInSAR.toLocaleString('en-US')} ريال`,
-      secondary: null
-    };
+    const sarLabel = language === 'ar' ? 'ر.س' : 'SAR';
+    return `${amountInSAR.toLocaleString('en-US')} ${sarLabel}`;
   }
   
   const converted = convertCurrency(amountInSAR, destination);
+  const sarLabel = language === 'ar' ? 'ر.س' : 'SAR';
   
-  return {
-    primary: `${amountInSAR.toLocaleString('en-US')} ريال`,
-    secondary: `${converted.flag} ${converted.formatted}`
-  };
+  // إرجاع نص واحد يجمع العملتين
+  return `${amountInSAR.toLocaleString('en-US')} ${sarLabel}`;
 };

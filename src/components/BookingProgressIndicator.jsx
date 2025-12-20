@@ -8,12 +8,15 @@
  */
 
 import PropTypes from 'prop-types';
+import { useLanguage } from '../contexts/LanguageContext.jsx';
 
 function BookingProgressIndicator({ currentStep = 1, steps }) {
+  const { t } = useLanguage();
+  
   const defaultSteps = [
-    { id: 1, name: 'الوجهة', description: 'اختر مكان رحلتك' },
-    { id: 2, name: 'الخدمات', description: 'حدد ما تحتاجه' },
-    { id: 3, name: 'التأكيد', description: 'أكمل الحجز' },
+    { id: 1, name: t('progress.destination'), description: t('progress.destinationDesc') },
+    { id: 2, name: t('progress.services'), description: t('progress.servicesDesc') },
+    { id: 3, name: t('progress.confirmation'), description: t('progress.confirmationDesc') },
   ];
 
   const stepsToUse = steps || defaultSteps;

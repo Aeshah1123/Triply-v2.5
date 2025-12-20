@@ -168,7 +168,7 @@ function AITravelAssistant() {
 
             {/* Destinations Preview */}
             <div className="flex flex-wrap justify-center gap-4 mb-10">
-              {Object.values(destinations).map((dest) => (
+              {Object.values(translatedDestinations).map((dest) => (
                 <div
                   key={dest.name}
                   className="inline-flex items-center gap-3 px-5 py-3 rounded-full bg-triply-mint/20 dark:bg-triply-teal/20 border-2 border-triply-mint/40 dark:border-triply-teal/40 hover:border-triply dark:hover:border-triply-mint hover:scale-105 transition-all duration-300 shadow-lg"

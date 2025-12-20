@@ -14,9 +14,9 @@ import { useLanguage } from "../../contexts/LanguageContext.jsx";
 import { GlassButton } from "../ui/GlassButton.jsx";
 import { FeedbackToast } from "../ui/FeedbackToast.jsx";
 import {
-  bookingServices,
-  budgetLevels,
-  bookingDestinations,
+  getBookingServices,
+  getBudgetLevels,
+  getBookingDestinations,
   destinationMapping,
 } from "../../data/bookingOptions.js";
 import { FormHelper } from "../ui/FormHelper.jsx";
@@ -24,13 +24,14 @@ import { BookingProgressIndicator } from "../BookingProgressIndicator.jsx";
 import { useScrollReveal } from "../../hooks/useScrollReveal.js";
 import { travelCosts } from "../../data/travelCosts.js";
 import { currencyRates } from "../../data/currencyRates.js";
+import { formatCurrency } from "../../utils/translationHelpers.js";
 
 const STORAGE_KEY = "triply-booking-preferences";
 
 function BookingSection() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [selectedServices, setSelectedServices] = useState([]);
   const [selectedBudget, setSelectedBudget] = useState("");
   const [selectedDestination, setSelectedDestination] = useState("");
@@ -167,6 +168,8 @@ function BookingSection() {
   };
 
   const availableOptions = getAvailableOptions();
+  const bookingServices = getBookingServices(language);
+  const budgetLevels = getBudgetLevels(language);
 
   const toggleService = (serviceId) => {
     const service = bookingServices.find((s) => s.id === serviceId);
@@ -383,7 +386,7 @@ function BookingSection() {
                   className="w-full rounded-xl border-2 border-triply-mint/40 dark:border-dark-border/50 bg-white dark:bg-dark-surface px-5 py-4 text-right text-lg font-semibold text-triply-dark dark:text-dark-text-primary placeholder:text-triply-slate/40 dark:placeholder:text-dark-text-secondary/40 shadow-md transition-all duration-200 hover:border-triply dark:hover:border-triply-mint focus:border-triply dark:focus:border-triply-mint focus:outline-none focus:ring-4 focus:ring-triply/10 dark:focus:ring-triply-mint/20"
                 />
                 <span className="absolute left-5 top-1/2 -translate-y-1/2 text-triply-slate/60 dark:text-dark-text-secondary font-medium">
-                  ريال
+                  {language === 'ar' ? 'ريال' : 'SAR'}
                 </span>
               </div>
               <FormHelper text={t("booking.budgetHelper")} />
@@ -396,7 +399,7 @@ function BookingSection() {
                       {t("booking.budgetSet")}
                     </span>
                     <span className="text-lg font-bold text-triply dark:text-triply-mint">
-                      {parseFloat(userBudget).toLocaleString()} ريال
+                      {formatCurrency(parseFloat(userBudget), language)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-sm mt-2">
@@ -404,7 +407,7 @@ function BookingSection() {
                       {t("booking.budgetUsed")}
                     </span>
                     <span className="text-lg font-bold text-triply-accent dark:text-triply-accentLight">
-                      {calculateTotalCost().toLocaleString()} ريال
+                      {formatCurrency(calculateTotalCost(), language)}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-sm mt-2 pt-2 border-t border-triply-mint/20 dark:border-triply-teal/20">
@@ -418,10 +421,10 @@ function BookingSection() {
                           : "text-red-600 dark:text-red-400"
                       }`}
                     >
-                      {(
-                        parseFloat(userBudget) - calculateTotalCost()
-                      ).toLocaleString()}{" "}
-                      ريال
+                      {formatCurrency(
+                        parseFloat(userBudget) - calculateTotalCost(),
+                        language
+                      )}
                     </span>
                   </div>
                   {/* شريط تقدم الميزانية */}
@@ -478,7 +481,7 @@ function BookingSection() {
                 >
                   {t("booking.destinationPlaceholder")}
                 </option>
-                {bookingDestinations.map((dest) => (
+                {getBookingDestinations(language).map((dest) => (
                   <option
                     key={dest}
                     value={dest}
@@ -511,7 +514,7 @@ function BookingSection() {
             </label>
             <FormHelper text={t("booking.budgetHelper")} />
             <div className="grid gap-4 sm:grid-cols-3">
-              {budgetLevels.map((budget) => (
+              {getBudgetLevels(language).map((budget) => (
                 <button
                   key={budget.id}
                   type="button"
@@ -593,10 +596,10 @@ function BookingSection() {
                   </div>
                   <div className="flex-1 text-right relative z-10">
                     <div className="text-lg font-bold text-blue-900 dark:text-blue-100 mb-1">
-                      حجز طيران
+                      {t("booking.flightLabel")}
                     </div>
                     <p className="text-sm text-blue-700/70 dark:text-blue-300/70">
-                      رحلات جوية مريحة
+                      {t("booking.serviceDescriptions.flight")}
                     </p>
                   </div>
                 </div>
@@ -622,10 +625,10 @@ function BookingSection() {
                   </div>
                   <div className="flex-1 text-right relative z-10">
                     <div className="text-lg font-bold text-rose-900 dark:text-rose-100 mb-1">
-                      حجز فنادق
+                      {t("booking.hotelLabel")}
                     </div>
                     <p className="text-sm text-rose-700/70 dark:text-rose-300/70">
-                      إقامة فاخرة ومريحة
+                      {t("booking.serviceDescriptions.hotel")}
                     </p>
                   </div>
                 </div>
@@ -653,10 +656,10 @@ function BookingSection() {
                   </div>
                   <div className="flex-1 text-right relative z-10">
                     <div className="text-lg font-bold text-slate-900 dark:text-slate-100 mb-1">
-                      حجز مطاعم
+                      {t("booking.restaurantLabel")}
                     </div>
                     <p className="text-sm text-slate-700/70 dark:text-slate-300/70">
-                      تجربة طعام مميزة
+                      {t("booking.serviceDescriptions.restaurant")}
                     </p>
                   </div>
                 </div>
@@ -682,10 +685,10 @@ function BookingSection() {
                   </div>
                   <div className="flex-1 text-right relative z-10">
                     <div className="text-lg font-bold text-pink-900 dark:text-pink-100 mb-1">
-                      أنشطة وجولات
+                      {t("booking.activityLabel")}
                     </div>
                     <p className="text-sm text-pink-700/70 dark:text-pink-300/70">
-                      أنشطة ممتعة ومغامرات
+                      {t("booking.serviceDescriptions.activities")}
                     </p>
                   </div>
                 </div>
@@ -719,7 +722,7 @@ function BookingSection() {
                 </svg>
               </div>
               <h3 className="text-xl font-bold text-triply-dark dark:text-dark-text-primary">
-                ملخص اختيارك
+                {t('booking.summaryTitle')}
               </h3>
             </div>
             <div className="space-y-3 text-sm sm:text-base">
@@ -738,7 +741,7 @@ function BookingSection() {
                   </svg>
                   <div>
                     <strong className="text-triply-dark dark:text-dark-text-primary">
-                      الوجهة:
+                      {t('booking.destinationLabel')}:
                     </strong>
                     <span className="mr-2 font-semibold text-triply dark:text-triply-mint">
                       {selectedDestination}
@@ -762,7 +765,7 @@ function BookingSection() {
                   </svg>
                   <div>
                     <strong className="text-triply-dark dark:text-dark-text-primary">
-                      الخدمات:
+                      {t('booking.servicesLabel')}:
                     </strong>
                     <span className="mr-2 font-semibold text-triply dark:text-triply-mint">
                       {selectedServices
@@ -790,7 +793,7 @@ function BookingSection() {
                   </svg>
                   <div>
                     <strong className="text-triply-dark dark:text-dark-text-primary">
-                      الميزانية:
+                      {t('booking.budgetLabel')}:
                     </strong>
                     <span className="mr-2 font-semibold text-triply dark:text-triply-mint">
                       {budgetLevels.find((b) => b.id === selectedBudget)?.name}
@@ -818,27 +821,27 @@ function BookingSection() {
                   </svg>
                   <div className="flex-1">
                     <strong className="text-triply-dark dark:text-dark-text-primary block mb-2">
-                      الخدمات الإضافية:
+                      {t('booking.additionalServices')}:
                     </strong>
                     <div className="flex flex-wrap gap-2">
                       {selectedFlight && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-200 text-sm font-medium border border-blue-200 dark:border-blue-800">
-                          ✈️ حجز طيران
+                          ✈️ {t("booking.flightLabel")}
                         </span>
                       )}
                       {selectedHotel && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-100 dark:bg-rose-900/30 text-rose-800 dark:text-rose-200 text-sm font-medium border border-rose-200 dark:border-rose-800">
-                          🏨 حجز فنادق
+                          🏨 {t("booking.hotelLabel")}
                         </span>
                       )}
                       {selectedRestaurant && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-800/50 text-slate-800 dark:text-slate-200 text-sm font-medium border border-slate-200 dark:border-slate-700">
-                          🍽️ حجز مطاعم
+                          🍽️ {t("booking.restaurantLabel")}
                         </span>
                       )}
                       {selectedActivity && (
                         <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-100 dark:bg-pink-900/30 text-pink-800 dark:text-pink-200 text-sm font-medium border border-pink-200 dark:border-pink-800">
-                          🎯 أنشطة وجولات
+                          🎯 {t("booking.activityLabel")}
                         </span>
                       )}
                     </div>
@@ -871,7 +874,7 @@ function BookingSection() {
                     />
                   </svg>
                   <span className="text-lg font-bold">
-                    احجز الآن واحصل على عرض سعر مفصّل
+                    {t('booking.getQuoteButton')}
                   </span>
                   <svg
                     className="w-5 h-5"

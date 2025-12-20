@@ -12,31 +12,43 @@ const ThemeContext = createContext(undefined);
 
 export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(() => {
-    // Check localStorage first
-    const savedTheme = localStorage.getItem('triply-theme');
-    if (savedTheme) {
-      return savedTheme;
+    try {
+      // Check localStorage first
+      const savedTheme = localStorage.getItem('triply-theme');
+      if (savedTheme) {
+        return savedTheme;
+      }
+    } catch (error) {
+      console.error('Error accessing localStorage:', error);
     }
     
     // Check system preference
-    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      return 'dark';
+    try {
+      if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        return 'dark';
+      }
+    } catch (error) {
+      console.error('Error checking system preference:', error);
     }
     
     return 'light';
   });
 
   useEffect(() => {
-    const root = window.document.documentElement;
-    
-    // Remove opposite theme class
-    root.classList.remove(theme === 'dark' ? 'light' : 'dark');
-    
-    // Add current theme class
-    root.classList.add(theme);
-    
-    // Save to localStorage
-    localStorage.setItem('triply-theme', theme);
+    try {
+      const root = window.document.documentElement;
+      
+      // Remove opposite theme class
+      root.classList.remove(theme === 'dark' ? 'light' : 'dark');
+      
+      // Add current theme class
+      root.classList.add(theme);
+      
+      // Save to localStorage
+      localStorage.setItem('triply-theme', theme);
+    } catch (error) {
+      console.error('Error updating theme:', error);
+    }
   }, [theme]);
 
   const toggleTheme = () => {
@@ -59,9 +71,12 @@ export function ThemeProvider({ children }) {
 export function useTheme() {
   const context = useContext(ThemeContext);
   
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useTheme must be used within a ThemeProvider');
   }
   
   return context;
 }
+
+
+

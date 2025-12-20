@@ -16,10 +16,11 @@ import {
   StcPayLogo,
   VisaLogo,
 } from "../components/ui/PaymentLogos.jsx";
+import { formatCurrency } from "../utils/translationHelpers.js";
 import { formatDualCurrency } from "../data/currencyRates.js";
 
 function PaymentPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
   const bookingData = location.state;
@@ -165,7 +166,27 @@ function PaymentPage() {
                   </span>
                 </div>
 
+                {bookingData.numberOfGuests && (
+                  <div className="flex justify-between">
+                    <span className="text-triply-dark/70 dark:text-dark-text-secondary">
+                      {t("bookingDetails.summaryGuests")}:
+                    </span>
+                    <span className="font-semibold text-triply-dark dark:text-dark-text-primary">
+                      {bookingData.numberOfGuests}{" "}
+                      {bookingData.numberOfGuests === 1
+                        ? t("bookingDetails.person")
+                        : t("bookingDetails.persons")}
+                    </span>
+                  </div>
+                )}
+
                 <div className="border-t border-triply-mint/30 dark:border-dark-border pt-3 mt-3">
+                  {bookingData.numberOfGuests > 1 && bookingData.pricePerPerson && (
+                    <div className="flex justify-between text-sm text-triply-dark/70 dark:text-dark-text-secondary mb-2">
+                      <span>{t("bookingDetails.pricePerPerson")}:</span>
+                      <span>{bookingData.pricePerPerson.toLocaleString()} ر.س</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-lg font-bold">
                     <span className="text-triply-dark dark:text-dark-text-primary">
                       {t("payment.totalAmount")}:
@@ -234,14 +255,14 @@ function PaymentPage() {
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-semibold text-triply-dark dark:text-dark-text-primary mb-2">
-                      رقم البطاقة *
+                      {t("payment.cardNumber")} *
                     </label>
                     <input
                       type="text"
                       name="cardNumber"
                       value={formData.cardNumber}
                       onChange={handleInputChange}
-                      placeholder="1234 5678 9012 3456"
+                      placeholder={t("payment.cardNumberPlaceholder")}
                       maxLength="19"
                       required
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-bg text-triply-dark dark:text-dark-text-primary focus:border-triply-teal focus:ring-2 focus:ring-triply-mint/20 outline-none transition"
@@ -250,14 +271,14 @@ function PaymentPage() {
 
                   <div>
                     <label className="block text-sm font-semibold text-triply-dark dark:text-dark-text-primary mb-2">
-                      اسم حامل البطاقة *
+                      {t("payment.cardName")} *
                     </label>
                     <input
                       type="text"
                       name="cardName"
                       value={formData.cardName}
                       onChange={handleInputChange}
-                      placeholder="الاسم كما هو مكتوب على البطاقة"
+                      placeholder={t("payment.cardNamePlaceholder")}
                       required
                       className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-bg text-triply-dark dark:text-dark-text-primary focus:border-triply-teal focus:ring-2 focus:ring-triply-mint/20 outline-none transition"
                     />
@@ -266,14 +287,14 @@ function PaymentPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <label className="block text-sm font-semibold text-triply-dark dark:text-dark-text-primary mb-2">
-                        تاريخ الانتهاء *
+                        {t("payment.expiryDate")} *
                       </label>
                       <input
                         type="text"
                         name="expiryDate"
                         value={formData.expiryDate}
                         onChange={handleInputChange}
-                        placeholder="MM/YY"
+                        placeholder={t("payment.expiryDatePlaceholder")}
                         maxLength="5"
                         required
                         className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-bg text-triply-dark dark:text-dark-text-primary focus:border-triply-teal focus:ring-2 focus:ring-triply-mint/20 outline-none transition"
@@ -282,14 +303,14 @@ function PaymentPage() {
 
                     <div>
                       <label className="block text-sm font-semibold text-triply-dark dark:text-dark-text-primary mb-2">
-                        CVV *
+                        {t("payment.cvv")} *
                       </label>
                       <input
                         type="text"
                         name="cvv"
                         value={formData.cvv}
                         onChange={handleInputChange}
-                        placeholder="123"
+                        placeholder={t("payment.cvvPlaceholder")}
                         maxLength="3"
                         required
                         className="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-dark-border bg-white dark:bg-dark-bg text-triply-dark dark:text-dark-text-primary focus:border-triply-teal focus:ring-2 focus:ring-triply-mint/20 outline-none transition"
@@ -303,11 +324,12 @@ function PaymentPage() {
               {paymentMethod !== "credit-card" && (
                 <div className="p-6 bg-triply-mint/10 dark:bg-triply-teal/10 rounded-xl text-center">
                   <p className="text-triply-dark dark:text-dark-text-primary font-semibold mb-2">
-                    ستتم إعادة توجيهك إلى{" "}
-                    {paymentMethods.find((m) => m.id === paymentMethod)?.name}
+                    {t("payment.redirectMessage", {
+                      method: paymentMethods.find((m) => m.id === paymentMethod)?.name,
+                    })}
                   </p>
                   <p className="text-sm text-triply-dark/70 dark:text-dark-text-secondary">
-                    اضغط على زر الدفع للمتابعة
+                    {t("payment.redirectInstruction")}
                   </p>
                 </div>
               )}
@@ -321,10 +343,10 @@ function PaymentPage() {
                 {isProcessing ? (
                   <div className="flex items-center justify-center gap-2">
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>جاري معالجة الدفع...</span>
+                    <span>{t("payment.processing")}</span>
                   </div>
                 ) : (
-                  `ادفع ${bookingData.totalCost?.toLocaleString() || "0"} ر.س`
+                  `${t("payment.payNow")} ${formatCurrency(bookingData.totalCost || 0, language)}`
                 )}
               </button>
 
@@ -344,7 +366,7 @@ function PaymentPage() {
                   />
                   <rect width="16" height="12" x="4" y="10" rx="2" ry="2" />
                 </svg>
-                <span>معاملة آمنة ومشفرة بتقنية SSL</span>
+                <span>{t("payment.securePayment")}</span>
               </div>
             </form>
           </div>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-labelledby="title desc">
+  <title id="title">Triply stylized logo</title>
+  <desc id="desc">Three interlocking swooshes encircling a plane icon.</desc>
+  <defs>
+    <linearGradient id="mintGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b5f5e5" />
+      <stop offset="100%" stop-color="#1f8f80" />
+    </linearGradient>
+    <linearGradient id="tealGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0c5b43" />
+      <stop offset="100%" stop-color="#43b48f" />
+    </linearGradient>
+    <linearGradient id="sandGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f6d6a2" />
+      <stop offset="100%" stop-color="#c18a40" />
+    </linearGradient>
+  </defs>
+  <g transform="translate(0 -5)">
+    <rect x="46" y="28" width="128" height="52" rx="32" fill="url(#mintGradient)" transform="rotate(32 110 54)" />
+    <rect x="28" y="98" width="128" height="52" rx="32" fill="url(#tealGradient)" transform="rotate(-32 92 124)" />
+    <rect x="86" y="56" width="128" height="52" rx="32" fill="url(#sandGradient)" transform="rotate(58 150 82)" />
+    <path d="M147 58l34 8c3 1 4 4 2 5l-11 7-8 14c-1 2-5 1-5-1l1-11-12 2c-2 1-3-2-1-3l14-9-6-8c-1-2 1-5 3-4z" fill="#0a664b" />
+  </g>
+</svg>

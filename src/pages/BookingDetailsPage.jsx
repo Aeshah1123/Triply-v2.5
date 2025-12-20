@@ -15,11 +15,91 @@ import { FeedbackToast } from "../components/ui/FeedbackToast.jsx";
 import { travelCosts, calculateDays } from "../data/travelCosts.js";
 import { currencyRates } from "../data/currencyRates.js";
 import { useScrollReveal } from "../hooks/useScrollReveal.js";
+import {
+  formatCurrency,
+  getDestinationName,
+  getCategoryName,
+  translateDuration,
+  translateActivityDescription,
+} from "../utils/translationHelpers.js";
 
 const STORAGE_KEY = "triply-booking-details";
 
+// ترجمة أسماء شركات الطيران والفئات/الأمتعة حسب اللغة
+const airlineNameMap = {
+  "الخطوط السعودية - اقتصادية": {
+    ar: "الخطوط السعودية - اقتصادية",
+    en: "Saudia - Economy",
+  },
+  "الخطوط السعودية - درجة الأعمال": {
+    ar: "الخطوط السعودية - درجة الأعمال",
+    en: "Saudia - Business",
+  },
+  "الاتحاد للطيران - درجة الأعمال": {
+    ar: "الاتحاد للطيران - درجة الأعمال",
+    en: "Etihad Airways - Business",
+  },
+  "طيران الإمارات - الدرجة الأولى": {
+    ar: "طيران الإمارات - الدرجة الأولى",
+    en: "Emirates - First Class",
+  },
+  "Air France - درجة الأعمال": {
+    ar: "Air France - درجة الأعمال",
+    en: "Air France - Business",
+  },
+  "الخطوط التركية - درجة الأعمال": {
+    ar: "الخطوط التركية - درجة الأعمال",
+    en: "Turkish Airlines - Business",
+  },
+  "فلاي دبي - اقتصادية": {
+    ar: "فلاي دبي - اقتصادية",
+    en: "Flydubai - Economy",
+  },
+  "مصر للطيران - اقتصادية": {
+    ar: "مصر للطيران - اقتصادية",
+    en: "EgyptAir - Economy",
+  },
+};
+
+const flightClassMap = {
+  Economy: { ar: "اقتصادي", en: "Economy" },
+  Business: { ar: "درجة الأعمال", en: "Business" },
+  "First Class": { ar: "الدرجة الأولى", en: "First Class" },
+};
+
+const mealMap = {
+  قياسية: { ar: "قياسية", en: "Standard" },
+  مميزة: { ar: "مميزة", en: "Premium" },
+  فاخرة: { ar: "فاخرة", en: "Luxury" },
+};
+
+const translateAirlineName = (name, language) => {
+  const mapped = airlineNameMap[name];
+  if (mapped) return mapped[language] || name;
+  return name;
+};
+
+const translateFlightClass = (value, language) => {
+  const mapped = flightClassMap[value];
+  if (mapped) return mapped[language] || value;
+  return value;
+};
+
+const translateBaggage = (value, language) => {
+  if (!value) return "";
+  if (language === "en") return value.replace("كجم", "kg");
+  return value;
+};
+
+const translateMeals = (value, language) => {
+  if (!value) return "";
+  const mapped = mealMap[value];
+  if (mapped) return mapped[language] || value;
+  return value;
+};
+
 function BookingDetailsPage() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const navigate = useNavigate();
   const location = useLocation();
   const { ref: headerRef, isVisible: headerVisible } = useScrollReveal({
@@ -51,6 +131,9 @@ function BookingDetailsPage() {
   // الميزانية
   const [budget, setBudget] = useState("");
   const [budgetError, setBudgetError] = useState("");
+
+  // عدد الأشخاص
+  const [numberOfGuests, setNumberOfGuests] = useState(1);
 
   // Toast notifications
   const [toast, setToast] = useState({
@@ -159,6 +242,7 @@ function BookingDetailsPage() {
         const parsed = JSON.parse(bookingDetails);
         if (parsed.arrivalDate) setArrivalDate(parsed.arrivalDate);
         if (parsed.departureDate) setDepartureDate(parsed.departureDate);
+        if (parsed.numberOfGuests) setNumberOfGuests(parsed.numberOfGuests);
         if (parsed.selectedFlight) setSelectedFlight(parsed.selectedFlight);
         if (parsed.selectedHotel) setSelectedHotel(parsed.selectedHotel);
         if (parsed.selectedRestaurants)
@@ -187,6 +271,7 @@ function BookingDetailsPage() {
       arrivalDate,
       departureDate,
       days,
+      numberOfGuests,
       selectedFlight,
       selectedHotel,
       selectedRestaurants,
@@ -199,6 +284,7 @@ function BookingDetailsPage() {
     arrivalDate,
     departureDate,
     days,
+    numberOfGuests,
     selectedFlight,
     selectedHotel,
     selectedRestaurants,
@@ -296,14 +382,18 @@ function BookingDetailsPage() {
       });
     }
 
+    // ضرب المجموع في عدد الأشخاص
+    total = total * numberOfGuests;
+
     setTotalCost(total);
 
     // التحقق من تجاوز الميزانية
     if (budget && parseFloat(budget) > 0 && total > parseFloat(budget)) {
       setBudgetError(
-        `⚠️ التكلفة الإجمالية (${total.toLocaleString()} ر.س) تجاوزت الميزانية المحددة (${parseFloat(
-          budget
-        ).toLocaleString()} ر.س)`
+        t("bookingDetails.budgetExceeded", {
+          total: total.toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US'),
+          budget: parseFloat(budget).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')
+        })
       );
     } else {
       setBudgetError("");
@@ -314,6 +404,7 @@ function BookingDetailsPage() {
     selectedRestaurants,
     selectedActivities,
     days,
+    numberOfGuests,
     budget,
   ]);
 
@@ -387,6 +478,12 @@ function BookingDetailsPage() {
 
   // الانتقال لصفحة التأكيد
   const handleConfirmBooking = () => {
+    // التحقق من عدد الأشخاص
+    if (!numberOfGuests || numberOfGuests < 1) {
+      showToast(t('bookingDetails.guestsRequired') || "يجب تحديد عدد الأشخاص (الحد الأدنى: 1)");
+      return;
+    }
+
     // التحقق من الميزانية قبل التأكيد
     if (budget && parseFloat(budget) > 0 && totalCost > parseFloat(budget)) {
       showToast(
@@ -403,11 +500,13 @@ function BookingDetailsPage() {
       arrivalDate,
       departureDate,
       days,
+      numberOfGuests,
       selectedFlight,
       selectedHotel,
       selectedRestaurants,
       selectedActivities,
       totalCost,
+      pricePerPerson: totalCost / numberOfGuests,
       budget,
     };
 
@@ -423,42 +522,30 @@ function BookingDetailsPage() {
 
   // مشاركة عبر واتساب
   const handleWhatsAppShare = () => {
-    const destinationNames = {
-      london: "لندن 🇬🇧",
-      paris: "باريس 🇫🇷",
-      turkey: "إسطنبول �🇷",
-      dubai: "دبي 🇦🇪",
-      egypt: "القاهرة 🇪🇬",
-    };
-
-    const categoryNames = {
-      budget: "اقتصادي 💰",
-      midRange: "متوسط ⭐",
-      luxury: "فاخر 💎",
-    };
-
     const message = `
-🌍 *حجز رحلة Triply*
+${t('bookingDetails.whatsappTitle')}
 
-📍 الوجهة: ${destinationNames[destination] || destination}
-🏷️ الفئة: ${categoryNames[category] || category}
-📅 تاريخ الوصول: ${arrivalDate}
-📅 تاريخ المغادرة: ${departureDate}
-⏱️ عدد الأيام: ${days}
+${t('bookingDetails.whatsappDestination', { destination: getDestinationName(destination, language) })}
+${t('bookingDetails.whatsappCategory', { category: getCategoryName(category, language) })}
+${t('bookingDetails.whatsappArrival', { date: arrivalDate })}
+${t('bookingDetails.whatsappDeparture', { date: departureDate })}
+${t('bookingDetails.whatsappDays', { days })}
 
-✈️ الطيران: ${selectedFlight?.airline || "غير محدد"} - ${
-      selectedFlight?.price || 0
-    } ريال
-🏨 الفندق: ${selectedHotel?.name || "غير محدد"} - ${
-      selectedHotel?.price || 0
-    } ريال/ليلة
-🍽️ المطاعم: ${selectedRestaurants.length} مطعم
-🎡 الأنشطة: ${selectedActivities.length} نشاط
+${t('bookingDetails.whatsappFlight', { 
+  airline: selectedFlight?.airline || t('bookingDetails.notSpecified'), 
+  price: selectedFlight?.price || 0 
+})}
+${t('bookingDetails.whatsappHotel', { 
+  hotel: selectedHotel?.name || t('bookingDetails.notSpecified'), 
+  price: selectedHotel?.price || 0 
+})}
+${t('bookingDetails.whatsappRestaurants', { count: selectedRestaurants.length })}
+${t('bookingDetails.whatsappActivities', { count: selectedActivities.length })}
 
-💰 *الإجمالي: ${totalCost.toFixed(2)} ريال سعودي*
+${t('bookingDetails.whatsappTotal', { total: totalCost.toFixed(2) })}
 
 ---
-تم الحجز عبر منصة Triply
+${t('bookingDetails.whatsappFooter')}
     `.trim();
 
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
@@ -539,10 +626,10 @@ function BookingDetailsPage() {
                 </div>
                 <div>
                   <h2 className="text-2xl font-bold text-triply-dark dark:text-dark-text-primary">
-                    {t('bookingDetails.step1')}
+                    {t('bookingDetails.step1Title')}
                   </h2>
                   <p className="text-sm text-triply-slate/70 dark:text-dark-text-secondary">
-                    {t('bookingDetails.step1Desc')}
+                    {t('bookingDetails.step1Description')}
                   </p>
                 </div>
               </div>
@@ -565,7 +652,7 @@ function BookingDetailsPage() {
                       />
                     </svg>
                   </div>
-                  {t('bookingDetails.destination')}
+                  {t('bookingDetails.destinationLabel')}
                 </label>
                 <div className="relative group">
                   <select
@@ -595,7 +682,7 @@ function BookingDetailsPage() {
                       <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
                     </svg>
                   </div>
-                  {t('bookingDetails.category')}
+                  {t('bookingDetails.categoryLabel')}
                 </label>
                 <div className="relative group">
                   <select
@@ -752,6 +839,37 @@ function BookingDetailsPage() {
                   </div>
                 )}
               </div>
+
+              {/* عدد الأشخاص */}
+              <div className="space-y-3">
+                <label className="flex items-center gap-2 text-sm font-bold text-triply-dark dark:text-dark-text-primary">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-triply/10 dark:bg-triply-mint/10">
+                    <svg
+                      className="w-5 h-5 text-triply dark:text-triply-mint"
+                      fill="currentColor"
+                      viewBox="0 0 20 20"
+                    >
+                      <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                    </svg>
+                  </div>
+                  {t('bookingDetails.numberOfGuests')} *
+                </label>
+                <div className="relative group">
+                  <input
+                    type="number"
+                    min="1"
+                    value={numberOfGuests}
+                    onChange={(e) => setNumberOfGuests(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-full rounded-xl border-2 border-triply-mint/40 dark:border-dark-border/50 bg-white dark:!bg-dark-surface px-5 py-3.5 text-right text-base font-medium text-triply-dark dark:!text-dark-text-primary shadow-lg transition-all duration-300 hover:border-triply dark:hover:border-triply-mint hover:shadow-xl focus:border-triply dark:focus:border-triply-mint focus:outline-none focus:ring-4 focus:ring-triply/20 dark:focus:ring-triply-mint/30 group-hover:scale-[1.02] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    placeholder={t('bookingDetails.guestsPlaceholder')}
+                    required
+                  />
+                  <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-triply/0 via-triply-mint/5 to-triply/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
+                </div>
+                <p className="text-xs text-triply-slate/60 dark:text-dark-text-secondary">
+                  {t('bookingDetails.guestsHelp')}
+                </p>
+              </div>
             </div>
 
             {/* عدد الأيام */}
@@ -770,7 +888,7 @@ function BookingDetailsPage() {
                     />
                   </svg>
                 </div>
-                <span>عدد الأيام: {days} يوم</span>
+                <span>{t('bookingDetails.daysCount', { count: days })}</span>
               </div>
             )}
           </div>
@@ -791,10 +909,10 @@ function BookingDetailsPage() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-triply-dark dark:text-dark-text-primary">
-                  ✈️ رحلات الطيران
+                  {t('bookingDetails.flightsTitle')}
                 </h2>
                 <p className="text-sm text-triply-slate/70 dark:text-dark-text-secondary">
-                  اختر رحلة الطيران المناسبة
+                  {t('bookingDetails.flightsDescription')}
                 </p>
               </div>
             </div>
@@ -813,9 +931,9 @@ function BookingDetailsPage() {
                       newTotal > parseFloat(budget)
                     ) {
                       showToast(
-                        `لا يمكن اختيار هذه الرحلة لأنها ستتجاوز ميزانيتك المحددة (${parseFloat(
-                          budget
-                        ).toLocaleString()} ر.س)`
+                        t('bookingDetails.flightExceedsBudget', {
+                          budget: parseFloat(budget).toLocaleString(language === 'ar' ? 'ar-SA' : 'en-US')
+                        })
                       );
                       return;
                     }
@@ -851,13 +969,14 @@ function BookingDetailsPage() {
                     </div>
                   </div>
                   <h3 className="text-base font-semibold text-triply-dark dark:text-dark-text-primary mb-2">
-                    {flight.airline}
+                    {translateAirlineName(flight.airline, language)}
                   </h3>
                   <p className="text-sm text-triply-slate/70 dark:text-dark-text-secondary mb-3">
-                    {flight.class} • {flight.baggage}
+                    {translateFlightClass(flight.class, language)} • {translateBaggage(flight.baggage, language)}
+                    {flight.meals ? ` • ${translateMeals(flight.meals, language)}` : ""}
                   </p>
                   <p className="text-2xl font-bold text-triply dark:text-triply-mint">
-                    {flight.price} <span className="text-sm">ريال</span>
+                    {formatCurrency(flight.price, language)}
                   </p>
                 </button>
               ))}
@@ -880,10 +999,10 @@ function BookingDetailsPage() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-triply-dark dark:text-dark-text-primary">
-                  🏨 الفنادق
+                  {t('bookingDetails.hotelsTitle')}
                 </h2>
                 <p className="text-sm text-triply-slate/70 dark:text-dark-text-secondary">
-                  اختر الفندق المناسب لإقامتك
+                  {t('bookingDetails.hotelsDescription')}
                 </p>
               </div>
             </div>
@@ -959,12 +1078,14 @@ function BookingDetailsPage() {
                     {hotel.location}
                   </p>
                   <p className="text-2xl font-bold text-triply dark:text-triply-mint">
-                    {hotel.price} <span className="text-sm">ريال/ليلة</span>
+                    {formatCurrency(hotel.price, language, 'perNight')}
                   </p>
                   {days > 0 && (
                     <p className="text-xs text-triply-slate/60 dark:text-dark-text-secondary mt-1">
-                      الإجمالي: {(hotel.price * days).toFixed(2)} ريال لـ {days}{" "}
-                      ليلة
+                      {t('bookingDetails.totalNights', {
+                        amount: (hotel.price * days).toFixed(2),
+                        nights: days
+                      })}
                     </p>
                   )}
                 </button>
@@ -988,10 +1109,10 @@ function BookingDetailsPage() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-triply-dark dark:text-dark-text-primary">
-                  🍽️ المطاعم
+                  {t('bookingDetails.restaurantsTitle')}
                 </h2>
                 <p className="text-sm text-triply-slate/70 dark:text-dark-text-secondary">
-                  يمكنك اختيار أكثر من مطعم
+                  {t('bookingDetails.restaurantsDescription')}
                 </p>
               </div>
             </div>
@@ -1038,15 +1159,17 @@ function BookingDetailsPage() {
                       {restaurant.name}
                     </h3>
                     <p className="text-sm text-triply-slate/70 dark:text-dark-text-secondary mb-3">
-                      {restaurant.cuisine} • {restaurant.location}
+                      {t(`cuisineTypes.${restaurant.cuisine}`) || restaurant.cuisine} • {restaurant.location}
                     </p>
                     <p className="text-2xl font-bold text-triply dark:text-triply-mint">
-                      {restaurant.price}{" "}
-                      <span className="text-sm">ريال/يوم</span>
+                      {formatCurrency(restaurant.price, language, 'perDay')}
                     </p>
                     {days > 0 && isSelected && (
                       <p className="text-xs text-triply-slate/60 dark:text-dark-text-secondary mt-1">
-                        الإجمالي: {(restaurant.price * days).toFixed(2)} ريال
+                        {t('bookingDetails.totalNights', {
+                          amount: (restaurant.price * days).toFixed(2),
+                          nights: days
+                        })}
                       </p>
                     )}
                   </button>
@@ -1071,10 +1194,10 @@ function BookingDetailsPage() {
               </div>
               <div>
                 <h2 className="text-2xl font-bold text-triply-dark dark:text-dark-text-primary">
-                  🎡 الأنشطة والجولات
+                  {t('bookingDetails.activitiesTitle')}
                 </h2>
                 <p className="text-sm text-triply-slate/70 dark:text-dark-text-secondary">
-                  يمكنك اختيار أكثر من نشاط
+                  {t('bookingDetails.activitiesDescription')}
                 </p>
               </div>
             </div>
@@ -1121,12 +1244,12 @@ function BookingDetailsPage() {
                       {activity.name}
                     </h3>
                     <p className="text-sm text-triply-slate/70 dark:text-dark-text-secondary mb-3">
-                      {activity.duration} • {activity.description}
+                      {translateDuration(activity.duration, language)} • {translateActivityDescription(activity.description, language)}
                     </p>
                     <p className="text-2xl font-bold text-triply dark:text-triply-mint">
                       {activity.price === 0
-                        ? "مجاني"
-                        : `${activity.price} ريال`}
+                        ? t('bookingDetails.free')
+                        : formatCurrency(activity.price, language)}
                     </p>
                   </button>
                 );
@@ -1157,10 +1280,10 @@ function BookingDetailsPage() {
               </div>
               <div>
                 <h2 className="text-3xl font-bold text-triply-dark dark:text-dark-text-primary">
-                  💰 ملخص التكلفة الإجمالية
+                  {t('bookingDetails.summaryTitle')}
                 </h2>
                 <p className="text-sm text-triply-slate/80 dark:text-dark-text-secondary">
-                  تفاصيل جميع الخدمات المختارة
+                  {t('bookingDetails.summaryDescription')}
                 </p>
               </div>
             </div>
@@ -1169,11 +1292,10 @@ function BookingDetailsPage() {
               {selectedFlight && (
                 <div className="flex justify-between items-center p-4 rounded-xl bg-white/60 dark:bg-dark-surface/50 backdrop-blur-sm border border-triply-mint/30 dark:border-triply-teal/30 hover:shadow-lg transition-all duration-300">
                   <span className="text-xl font-bold text-triply dark:text-triply-mint">
-                    {selectedFlight.price}{" "}
-                    <span className="text-base">ريال</span>
+                    {formatCurrency(selectedFlight.price, language)}
                   </span>
                   <span className="text-base text-triply-slate/90 dark:text-dark-text-secondary font-medium">
-                    ✈️ الطيران
+                    {t('bookingDetails.flightLabel')}
                   </span>
                 </div>
               )}
@@ -1181,11 +1303,10 @@ function BookingDetailsPage() {
               {selectedHotel && days > 0 && (
                 <div className="flex justify-between items-center p-4 rounded-xl bg-white/60 dark:bg-dark-surface/50 backdrop-blur-sm border border-triply-mint/30 dark:border-triply-teal/30 hover:shadow-lg transition-all duration-300">
                   <span className="text-xl font-bold text-triply dark:text-triply-mint">
-                    {(selectedHotel.price * days).toFixed(2)}{" "}
-                    <span className="text-base">ريال</span>
+                    {formatCurrency((selectedHotel.price * days), language)}
                   </span>
                   <span className="text-base text-triply-slate/90 dark:text-dark-text-secondary font-medium">
-                    🏨 الفندق ({days} ليلة)
+                    {t('bookingDetails.hotelNights', { count: days })}
                   </span>
                 </div>
               )}
@@ -1193,13 +1314,13 @@ function BookingDetailsPage() {
               {selectedRestaurants.length > 0 && days > 0 && (
                 <div className="flex justify-between items-center p-4 rounded-xl bg-white/60 dark:bg-dark-surface/50 backdrop-blur-sm border border-triply-mint/30 dark:border-triply-teal/30 hover:shadow-lg transition-all duration-300">
                   <span className="text-xl font-bold text-triply dark:text-triply-mint">
-                    {selectedRestaurants
-                      .reduce((sum, r) => sum + r.price * days, 0)
-                      .toFixed(2)}{" "}
-                    <span className="text-base">ريال</span>
+                    {formatCurrency(
+                      selectedRestaurants.reduce((sum, r) => sum + r.price * days, 0),
+                      language
+                    )}
                   </span>
                   <span className="text-base text-triply-slate/90 dark:text-dark-text-secondary font-medium">
-                    🍽️ المطاعم ({selectedRestaurants.length})
+                    {t('bookingDetails.restaurantsCount', { count: selectedRestaurants.length })}
                   </span>
                 </div>
               )}
@@ -1207,25 +1328,43 @@ function BookingDetailsPage() {
               {selectedActivities.length > 0 && (
                 <div className="flex justify-between items-center p-4 rounded-xl bg-white/60 dark:bg-dark-surface/50 backdrop-blur-sm border border-triply-mint/30 dark:border-triply-teal/30 hover:shadow-lg transition-all duration-300">
                   <span className="text-xl font-bold text-triply dark:text-triply-mint">
-                    {selectedActivities
-                      .reduce((sum, a) => sum + a.price, 0)
-                      .toFixed(2)}{" "}
-                    <span className="text-base">ريال</span>
+                    {formatCurrency(
+                      selectedActivities.reduce((sum, a) => sum + a.price, 0),
+                      language
+                    )}
                   </span>
                   <span className="text-base text-triply-slate/90 dark:text-dark-text-secondary font-medium">
-                    🎡 الأنشطة ({selectedActivities.length})
+                    {t('bookingDetails.activitiesCount', { count: selectedActivities.length })}
                   </span>
                 </div>
               )}
 
               <div className="flex justify-between items-center p-6 rounded-2xl bg-gradient-to-r from-triply/10 via-triply-teal/10 to-triply-mint/10 dark:from-triply-mint/20 dark:via-triply-teal/20 dark:to-triply/20 border-2 border-triply dark:border-triply-mint shadow-xl mt-6">
                 <div className="text-left">
+                  {/* عرض عدد الأشخاص والسعر للشخص الواحد */}
+                  {numberOfGuests > 1 && (
+                    <div className="mb-3 text-sm text-triply-dark/70 dark:text-dark-text-secondary">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
+                        </svg>
+                        <span className="font-semibold">{numberOfGuests} {numberOfGuests === 1 ? t('bookingDetails.person') : t('bookingDetails.persons')}</span>
+                      </div>
+                      <div className="mt-1">
+                        <span className="text-xs">{t('bookingDetails.pricePerPerson')}: </span>
+                        <span className="font-bold text-triply dark:text-triply-mint">
+                          {(totalCost / numberOfGuests).toLocaleString()} {language === 'ar' ? 'ريال' : 'SAR'}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  
                   <div>
                     <span className="text-4xl font-black text-triply dark:text-triply-mint">
                       {totalCost.toLocaleString()}
                     </span>
                     <span className="text-xl font-semibold text-triply-slate dark:text-dark-text-secondary mr-2">
-                      ريال 🇸🇦
+                      {language === 'ar' ? 'ريال 🇸🇦' : 'SAR 🇸🇦'}
                     </span>
                   </div>
                   {(() => {
@@ -1242,7 +1381,7 @@ function BookingDetailsPage() {
                   })()}
                 </div>
                 <span className="text-xl font-bold text-triply-dark dark:text-dark-text-primary">
-                  💰 المجموع الكلي
+                  {t('bookingDetails.totalCost')}
                 </span>
               </div>
             </div>
@@ -1267,7 +1406,7 @@ function BookingDetailsPage() {
                     clipRule="evenodd"
                   />
                 </svg>
-                ✅ تأكيد الحجز
+                {t('bookingDetails.confirmBooking')}
               </GlassButton>
 
               <GlassButton
@@ -1284,7 +1423,7 @@ function BookingDetailsPage() {
                 >
                   <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z" />
                 </svg>
-                💬 إرسال عبر واتساب
+                {t('bookingDetails.whatsappShare')}
               </GlassButton>
             </div>
           </div>
