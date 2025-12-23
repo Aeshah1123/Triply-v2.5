@@ -890,15 +890,18 @@ ${t('bookingDetails.whatsappFooter')}
                   {t('bookingDetails.numberOfGuests')} *
                 </label>
                 <div className="relative group">
-                  <input
-                    type="number"
-                    min="1"
+                  <select
                     value={numberOfGuests}
-                    onChange={(e) => setNumberOfGuests(Math.max(1, parseInt(e.target.value) || 1))}
-                    className="w-full rounded-xl border-2 border-triply-mint/40 dark:border-dark-border/50 bg-white dark:!bg-dark-surface px-5 py-3.5 text-right text-base font-medium text-triply-dark dark:!text-dark-text-primary shadow-lg transition-all duration-300 hover:border-triply dark:hover:border-triply-mint hover:shadow-xl focus:border-triply dark:focus:border-triply-mint focus:outline-none focus:ring-4 focus:ring-triply/20 dark:focus:ring-triply-mint/30 group-hover:scale-[1.02] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    placeholder={t('bookingDetails.guestsPlaceholder')}
+                    onChange={(e) => setNumberOfGuests(parseInt(e.target.value))}
+                    className="w-full rounded-xl border-2 border-triply-mint/40 dark:border-dark-border/50 bg-white dark:!bg-dark-surface px-5 py-3.5 text-right text-base font-medium text-triply-dark dark:!text-dark-text-primary shadow-lg transition-all duration-300 hover:border-triply dark:hover:border-triply-mint hover:shadow-xl focus:border-triply dark:focus:border-triply-mint focus:outline-none focus:ring-4 focus:ring-triply/20 dark:focus:ring-triply-mint/30 group-hover:scale-[1.02] cursor-pointer"
                     required
-                  />
+                  >
+                    {Array.from({ length: 20 }, (_, i) => i + 1).map((num) => (
+                      <option key={num} value={num}>
+                        {num} {num === 1 ? t('bookingDetails.person') : t('bookingDetails.persons')}
+                      </option>
+                    ))}
+                  </select>
                   <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-triply/0 via-triply-mint/5 to-triply/0 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none" />
                 </div>
                 <p className="text-xs text-triply-slate/60 dark:text-dark-text-secondary">
