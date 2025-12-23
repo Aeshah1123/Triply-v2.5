@@ -567,6 +567,11 @@ const ar = {
     titlePart2: "بكل تفاصيلها",
     subtitle: "اختر الوجهة، الفئة، الخدمات التي تحتاجها، وشاهد التكلفة الإجمالية مباشرة",
     
+    // نصوص الفئات
+    budget: "اقتصادي",
+    midRange: "متوسط",
+    luxury: "فاخر",
+    
     step1Title: "الخطوة 1: اختر الوجهة والفئة والتواريخ",
     step1Description: "حدد معلومات رحلتك الأساسية",
     destinationLabel: "الوجهة",
@@ -719,6 +724,9 @@ const ar = {
     cvvPlaceholder: "123",
     bookingSummary: "ملخص الحجز",
     destination: "الوجهة",
+    category: "الفئة",
+    numberOfDays: "عدد الأيام",
+    numberOfTravelers: "عدد المسافرين",
     dates: "التواريخ",
     totalAmount: "المبلغ الإجمالي",
     payNow: "ادفع الآن",
@@ -879,6 +887,7 @@ const ar = {
     servicesDesc: "حدد ما تحتاجه",
     confirmation: "التأكيد",
     confirmationDesc: "أكمل الحجز",
+    stepCounter: "الخطوة {current} من {total}",
   },
 
   // Payment Success Page
@@ -903,13 +912,6 @@ const ar = {
     viewAllBookings: "عرض جميع الحجوزات",
     customerServiceMessage: "لأي استفسار، تواصل مع خدمة العملاء على واتساب",
   },
-  
-  // Dashboard
-  dashboard: {
-    confirmed: "مؤكد",
-    cancelled: "ملغي",
-    completed: "مكتمل",
-  }
 };
 
 export default ar;

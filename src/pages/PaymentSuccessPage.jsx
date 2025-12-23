@@ -30,18 +30,30 @@ function PaymentSuccessPage() {
 
   useEffect(() => {
     if (!bookingData) {
+      console.log('❌ No booking data found, redirecting to home');
       navigate('/');
       return;
     }
 
+    console.log('📋 Booking data received:', bookingData);
+    console.log('🔍 Is saved?', bookingData.saved);
+
     // Save booking to user profile - فقط مرة واحدة
     if (bookingData && !bookingData.saved) {
       console.log('💾 Saving booking for the first time...');
+      console.log('📦 Data being saved:', {
+        ...bookingData,
+        invoiceId,
+        bookingNumber
+      });
+      
       const savedBooking = addBooking({
         ...bookingData,
         invoiceId,
         bookingNumber
       });
+      
+      console.log('✅ Booking saved successfully:', savedBooking);
       
       // Update location state to prevent duplicate saves
       window.history.replaceState(

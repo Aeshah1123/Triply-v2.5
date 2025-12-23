@@ -128,20 +128,46 @@ export const AuthProvider = ({ children }) => {
       return existingBooking;
     }
     
+    // تحويل arrivalDate و departureDate إلى ISO format
+    const parseDate = (dateStr) => {
+      if (!dateStr) return null;
+      try {
+        // إذا كان التاريخ بصيغة MM/DD/YYYY أو DD/MM/YYYY
+        const parts = dateStr.split('/');
+        if (parts.length === 3) {
+          // افترض MM/DD/YYYY
+          const month = parseInt(parts[0]) - 1;
+          const day = parseInt(parts[1]);
+          const year = parseInt(parts[2]);
+          return new Date(year, month, day).toISOString();
+        }
+        // محاولة تحليل التاريخ مباشرة
+        return new Date(dateStr).toISOString();
+      } catch (e) {
+        console.error('Error parsing date:', dateStr, e);
+        return null;
+      }
+    };
+    
+    const checkInDate = booking.checkIn || parseDate(booking.arrivalDate) || new Date().toISOString();
+    const checkOutDate = booking.checkOut || parseDate(booking.departureDate) || new Date(Date.now() + (booking.days || 7) * 24 * 60 * 60 * 1000).toISOString();
+    
     const bookingWithId = {
       ...booking,
       id: Date.now().toString(),
       userId: user.id,
       bookingDate: new Date().toISOString(),
       status: 'confirmed',
-      // تأكد من وجود checkIn و checkOut (استخدم arrivalDate و departureDate كبديل)
-      checkIn: booking.checkIn || booking.arrivalDate || new Date().toISOString(),
-      checkOut: booking.checkOut || booking.departureDate || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+      checkIn: checkInDate,
+      checkOut: checkOutDate,
       numberOfGuests: booking.numberOfGuests || booking.guests || 1,
-      totalAmount: booking.totalAmount || booking.totalCost || 0
+      totalAmount: booking.totalAmount || booking.totalCost || 0,
+      // الاحتفاظ بالحقول الأصلية أيضاً
+      destination: booking.destination || { name: 'Unknown' }
     };
 
     console.log('✅ Booking after processing:', bookingWithId);
+    console.log('📅 CheckIn:', checkInDate, '| CheckOut:', checkOutDate);
 
     const updatedUser = {
       ...user,
@@ -165,19 +191,51 @@ export const AuthProvider = ({ children }) => {
   };
 
   const getUpcomingBookings = () => {
-    if (!user?.bookings) return [];
+    if (!user?.bookings) {
+      console.log('📋 No bookings found for user');
+      return [];
+    }
+    
     const now = new Date();
-    return user.bookings
-      .filter(booking => new Date(booking.checkIn) >= now && booking.status !== 'cancelled')
-      .sort((a, b) => new Date(a.checkIn) - new Date(b.checkIn));
+    const upcoming = user.bookings.filter(booking => {
+      const checkInDate = new Date(booking.checkIn);
+      const checkOutDate = new Date(booking.checkOut);
+      const isActive = checkOutDate >= now; // الحجز نشط إذا لم ينتهِ بعد
+      const isNotCancelled = booking.status !== 'cancelled';
+      
+      console.log('🔍 Checking booking:', {
+        id: booking.id,
+        checkIn: booking.checkIn,
+        checkOut: booking.checkOut,
+        checkInDate,
+        checkOutDate,
+        now,
+        isActive,
+        isNotCancelled,
+        willShow: isActive && isNotCancelled
+      });
+      
+      return isActive && isNotCancelled;
+    }).sort((a, b) => new Date(a.checkIn) - new Date(b.checkIn));
+    
+    console.log('⏰ Upcoming bookings count:', upcoming.length);
+    return upcoming;
   };
 
   const getPastBookings = () => {
-    if (!user?.bookings) return [];
+    if (!user?.bookings) {
+      console.log('📋 No bookings found for user');
+      return [];
+    }
+    
     const now = new Date();
-    return user.bookings
-      .filter(booking => new Date(booking.checkOut) < now || booking.status === 'cancelled')
-      .sort((a, b) => new Date(b.checkOut) - new Date(a.checkOut));
+    const past = user.bookings.filter(booking => {
+      const checkOutDate = new Date(booking.checkOut);
+      return checkOutDate < now || booking.status === 'cancelled';
+    }).sort((a, b) => new Date(b.checkOut) - new Date(a.checkOut));
+    
+    console.log('📅 Past bookings count:', past.length);
+    return past;
   };
 
   const cancelBooking = (bookingId) => {

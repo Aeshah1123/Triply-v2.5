@@ -97,7 +97,7 @@ function BookingProgressIndicator({ currentStep = 1, steps }) {
         {/* Progress text */}
         <div className="mt-6 text-center">
           <p className="text-sm text-triply-slate/70 dark:text-dark-text-secondary">
-            الخطوة {currentStep} من {stepsToUse.length}
+            {t('progress.stepCounter').replace('{current}', currentStep).replace('{total}', stepsToUse.length)}
           </p>
           <div className="mx-auto mt-2 h-1.5 w-48 overflow-hidden rounded-full bg-triply-mint/20 dark:bg-dark-border">
             <div

@@ -570,6 +570,11 @@ const en = {
     titlePart2: "Trip in Detail",
     subtitle: "Choose your destination, category, services you need, and see the total cost instantly",
     
+    // Category texts
+    budget: "Budget",
+    midRange: "Mid-Range",
+    luxury: "Luxury",
+    
     step1Title: "Step 1: Choose Destination, Category & Dates",
     step1Description: "Set your trip's basic information",
     destinationLabel: "Destination",
@@ -722,6 +727,9 @@ const en = {
     cvvPlaceholder: "123",
     bookingSummary: "Booking Summary",
     destination: "Destination",
+    category: "Category",
+    numberOfDays: "Number of Days",
+    numberOfTravelers: "Number of Travelers",
     dates: "Dates",
     totalAmount: "Total Amount",
     payNow: "Pay Now",
@@ -729,8 +737,6 @@ const en = {
     securePayment: "Secure and encrypted with SSL",
     redirectMessage: "You will be redirected to {method}",
     redirectInstruction: "Click Pay to continue",
-    paymentMethod: "Payment Method",
-    subtitle: "Choose your preferred payment method",
     fillAllFields: "Please fill in all required fields",
     paymentSuccess: "Payment successful! Redirecting...",
     paymentError: "Payment error occurred, please try again",
@@ -884,6 +890,7 @@ const en = {
     servicesDesc: "Select what you need",
     confirmation: "Confirmation",
     confirmationDesc: "Complete booking",
+    stepCounter: "Step {current} of {total}",
   },
 
   // Payment Success Page
@@ -908,13 +915,6 @@ const en = {
     viewAllBookings: "View All Bookings",
     customerServiceMessage: "For any inquiries, contact customer service on WhatsApp",
   },
-  
-  // Dashboard
-  dashboard: {
-    confirmed: "Confirmed",
-    cancelled: "Cancelled",
-    completed: "Completed",
-  }
 };
 
 export default en;

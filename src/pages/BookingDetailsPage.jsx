@@ -221,15 +221,25 @@ function BookingDetailsPage() {
     }
 
     // استرجاع الخدمات المختارة من الصفحة الأولى
+    // تحقق من الخدمات المحفوظة وتحديد أيها تم اختياره
     if (savedPreferences) {
       try {
         const parsed = JSON.parse(savedPreferences);
-        if (parsed.selectedFlight) setSelectedFlight(parsed.selectedFlight);
-        if (parsed.selectedHotel) setSelectedHotel(parsed.selectedHotel);
-        if (parsed.selectedRestaurant)
-          setSelectedRestaurants([parsed.selectedRestaurant]);
-        if (parsed.selectedActivity)
-          setSelectedActivities([parsed.selectedActivity]);
+        console.log('📦 Saved preferences:', parsed);
+        
+        // تخزين نوع الخدمات المختارة
+        if (parsed.selectedFlight === 'selected' || parsed.selectedFlight) {
+          localStorage.setItem('triply-needs-flight', 'true');
+        }
+        if (parsed.selectedHotel === 'selected' || parsed.selectedHotel) {
+          localStorage.setItem('triply-needs-hotel', 'true');
+        }
+        if (parsed.selectedRestaurant === 'selected' || parsed.selectedRestaurant) {
+          localStorage.setItem('triply-needs-restaurant', 'true');
+        }
+        if (parsed.selectedActivity === 'selected' || parsed.selectedActivity) {
+          localStorage.setItem('triply-needs-activity', 'true');
+        }
       } catch (e) {
         console.error("Error parsing saved preferences:", e);
       }
@@ -426,6 +436,31 @@ function BookingDetailsPage() {
   const filteredActivities = activities.filter(
     (act) => act.category === category
   );
+
+  // اختيار الخدمات تلقائياً عند تحميل الصفحة (إذا كانت محددة من الصفحة السابقة)
+  useEffect(() => {
+    const needsFlight = localStorage.getItem('triply-needs-flight');
+    const needsHotel = localStorage.getItem('triply-needs-hotel');
+    const needsRestaurant = localStorage.getItem('triply-needs-restaurant');
+    const needsActivity = localStorage.getItem('triply-needs-activity');
+
+    if (needsFlight === 'true' && !selectedFlight && flights.length > 0) {
+      setSelectedFlight(flights[0]);
+      localStorage.removeItem('triply-needs-flight');
+    }
+    if (needsHotel === 'true' && !selectedHotel && hotels.length > 0) {
+      setSelectedHotel(hotels[0]);
+      localStorage.removeItem('triply-needs-hotel');
+    }
+    if (needsRestaurant === 'true' && selectedRestaurants.length === 0 && restaurants.length > 0) {
+      setSelectedRestaurants([restaurants[0]]);
+      localStorage.removeItem('triply-needs-restaurant');
+    }
+    if (needsActivity === 'true' && selectedActivities.length === 0 && filteredActivities.length > 0) {
+      setSelectedActivities([filteredActivities[0]]);
+      localStorage.removeItem('triply-needs-activity');
+    }
+  }, [flights, hotels, restaurants, filteredActivities]);
 
   // التحقق من إمكانية إضافة خدمة
   const canAddService = (serviceCost) => {

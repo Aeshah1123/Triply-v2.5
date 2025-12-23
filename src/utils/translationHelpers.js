@@ -48,10 +48,23 @@ export const getCategoryName = (categoryKey, language = 'ar') => {
 };
 
 // تنسيق التاريخ حسب اللغة
-export const formatDate = (dateString, language = 'ar') => {
+export const formatDate = (dateString, language = 'ar', format = 'long') => {
   if (!dateString) return '';
   
   const date = new Date(dateString);
+  
+  // صيغة مختصرة للتواريخ
+  if (format === 'short') {
+    const options = {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    };
+    const locale = language === 'ar' ? 'ar-SA' : 'en-US';
+    return date.toLocaleDateString(locale, options);
+  }
+  
+  // صيغة كاملة
   const options = {
     weekday: 'long',
     year: 'numeric',
@@ -65,7 +78,12 @@ export const formatDate = (dateString, language = 'ar') => {
 
 // تنسيق العملة حسب اللغة
 export const formatCurrency = (amount, language = 'ar', perUnit = null) => {
-  const formattedAmount = amount.toLocaleString('en-US');
+  // التحقق من صحة القيمة
+  if (amount === null || amount === undefined || isNaN(amount)) {
+    return language === 'ar' ? '0 ريال' : '0 SAR';
+  }
+  
+  const formattedAmount = Number(amount).toLocaleString('en-US');
   
   if (language === 'ar') {
     if (perUnit === 'perNight') {

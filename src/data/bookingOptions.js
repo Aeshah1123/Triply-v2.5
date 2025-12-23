@@ -109,13 +109,13 @@ export const destinationMapping = {
   // Arabic names
   'لندن - المملكة المتحدة': 'london',
   'باريس - فرنسا': 'paris',
-  'القاهرة - مصر': 'cairo',
-  'إسطنبول - تركيا': 'istanbul',
+  'القاهرة - مصر': 'egypt',
+  'إسطنبول - تركيا': 'turkey',
   'دبي - الإمارات العربية المتحدة': 'dubai',
   // English names
   'London - United Kingdom': 'london',
   'Paris - France': 'paris',
-  'Cairo - Egypt': 'cairo',
-  'Istanbul - Turkey': 'istanbul',
+  'Cairo - Egypt': 'egypt',
+  'Istanbul - Turkey': 'turkey',
   'Dubai - United Arab Emirates': 'dubai'
 };

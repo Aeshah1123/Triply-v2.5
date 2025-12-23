@@ -8,38 +8,61 @@
  */
 
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useLanguage } from '../contexts/LanguageContext.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 import QRCode from 'qrcode';
 
 function InvoicePage() {
   const { t } = useLanguage();
   const location = useLocation();
   const navigate = useNavigate();
-  const { bookingData, invoiceId } = location.state || {};
+  const { invoiceId: urlInvoiceId } = useParams();
+  const { user } = useAuth();
+  
+  // Get data from location.state OR from user bookings using URL param
+  const stateData = location.state || {};
+  const invoiceId = stateData.invoiceId || urlInvoiceId;
+  
+  // If no booking data in state, try to find it in user's bookings
+  const [bookingData, setBookingData] = useState(stateData.bookingData || null);
   const [qrCodeUrl, setQrCodeUrl] = useState('');
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    if (!bookingData) {
-      navigate('/');
+    // If we don't have booking data, try to find it from user bookings
+    if (!bookingData && invoiceId && user?.bookings) {
+      const foundBooking = user.bookings.find(b => b.id === invoiceId);
+      if (foundBooking) {
+        setBookingData(foundBooking);
+      } else {
+        // No booking found with this ID
+        navigate('/dashboard');
+        return;
+      }
+    }
+    
+    if (!bookingData && !invoiceId) {
+      navigate('/dashboard');
       return;
     }
 
     // Generate QR code for the invoice URL
-    const baseUrl = window.location.origin + window.location.pathname.split('#')[0];
-    const invoiceUrl = `${baseUrl}#/invoice/${invoiceId}`;
-    QRCode.toDataURL(invoiceUrl, {
-      width: 300,
-      margin: 2,
-      color: {
-        dark: '#0c5b43',
-        light: '#ffffff'
-      }
-    })
-      .then((url) => setQrCodeUrl(url))
-      .catch((err) => console.error('QR code generation error:', err));
-  }, [bookingData, invoiceId, navigate]);
+    if (invoiceId && bookingData) {
+      const baseUrl = window.location.origin + window.location.pathname.split('#')[0];
+      const invoiceUrl = `${baseUrl}#/invoice/${invoiceId}`;
+      QRCode.toDataURL(invoiceUrl, {
+        width: 300,
+        margin: 2,
+        color: {
+          dark: '#0c5b43',
+          light: '#ffffff'
+        }
+      })
+        .then((url) => setQrCodeUrl(url))
+        .catch((err) => console.error('QR code generation error:', err));
+    }
+  }, [bookingData, invoiceId, navigate, user]);
 
   if (!bookingData) return null;
 

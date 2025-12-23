@@ -45,6 +45,8 @@ function PaymentPage() {
     return null;
   }
 
+  console.log('💳 Payment Page - Booking Data:', bookingData);
+
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
     setTimeout(
@@ -101,6 +103,8 @@ function PaymentPage() {
       setIsProcessing(false);
       showToast(t("payment.paymentSuccess"), "success");
 
+      console.log('✅ Payment successful, navigating to success page with data:', bookingData);
+
       setTimeout(() => {
         navigate("/payment-success", { state: bookingData });
       }, 2000);
@@ -147,29 +151,31 @@ function PaymentPage() {
 
                 <div className="flex justify-between">
                   <span className="text-triply-dark/70 dark:text-dark-text-secondary">
-                    {t("bookingDetails.category")}:
+                    {t("payment.category")}:
                   </span>
-                  <span className="font-semibold text-triply-dark dark:text-dark-text-primary">
-                    {bookingData.category}
+                  <span className="font-semibold text-triply-dark dark:text-dark-text-primary capitalize">
+                    {bookingData.category === 'budget' ? t('bookingDetails.budget') : 
+                     bookingData.category === 'midRange' ? t('bookingDetails.midRange') : 
+                     bookingData.category === 'luxury' ? t('bookingDetails.luxury') : bookingData.category}
                   </span>
                 </div>
 
                 <div className="flex justify-between">
                   <span className="text-triply-dark/70 dark:text-dark-text-secondary">
-                    {t("bookingDetails.numberOfDays")}:
+                    {t("payment.numberOfDays")}:
                   </span>
                   <span className="font-semibold text-triply-dark dark:text-dark-text-primary">
-                    {bookingData.days}{" "}
-                    {bookingData.days === 1
-                      ? t("dashboard.day")
-                      : t("dashboard.days_plural")}
+                    {typeof bookingData.days === 'number' ? bookingData.days : parseInt(bookingData.days) || 0}{" "}
+                    {(typeof bookingData.days === 'number' ? bookingData.days : parseInt(bookingData.days) || 0) === 1
+                      ? t("bookingConfirmation.day")
+                      : t("bookingConfirmation.days")}
                   </span>
                 </div>
 
                 {bookingData.numberOfGuests && (
                   <div className="flex justify-between">
                     <span className="text-triply-dark/70 dark:text-dark-text-secondary">
-                      {t("bookingDetails.summaryGuests")}:
+                      {t("payment.numberOfTravelers")}:
                     </span>
                     <span className="font-semibold text-triply-dark dark:text-dark-text-primary">
                       {bookingData.numberOfGuests}{" "}

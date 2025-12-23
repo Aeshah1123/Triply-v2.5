@@ -11,9 +11,10 @@ import { useAuth } from "../contexts/AuthContext.jsx";
 import { useLanguage } from "../contexts/LanguageContext.jsx";
 import { Link } from "react-router-dom";
 import { formatDualCurrency } from "../data/currencyRates.js";
+import { formatDate } from "../utils/translationHelpers.js";
 
 const Dashboard = () => {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const {
     user,
     getUpcomingBookings,
@@ -125,8 +126,7 @@ const Dashboard = () => {
             />
           </svg>
           <span className="text-sm">
-            {new Date(booking.checkIn).toLocaleDateString("ar-SA")} -{" "}
-            {new Date(booking.checkOut).toLocaleDateString("ar-SA")}
+            {formatDate(booking.checkIn, language, 'short')} - {formatDate(booking.checkOut, language, 'short')}
           </span>
         </div>
 
@@ -169,7 +169,7 @@ const Dashboard = () => {
               />
             </svg>
             <span className="text-sm font-semibold">
-              {booking.totalAmount?.toLocaleString("ar-SA")} ريال 🇸🇦
+              {booking.totalAmount?.toLocaleString("en-US")} {language === 'ar' ? 'ريال' : 'SAR'} 🇸🇦
             </span>
           </div>
           {(() => {
